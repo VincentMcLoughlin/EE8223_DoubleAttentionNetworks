@@ -9,10 +9,16 @@ from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 from torch.utils.data import TensorDataset
+import torch.utils.data as data
 
 from datetime import datetime
 import math
+import torchvision
+import time
+from torchsummary import summary
+import torchvision.models as models
 
+initialOutputSize = 56
 block1Size = 32
 convBlock2Size = 64
 convBlock3Size = 128
@@ -30,7 +36,7 @@ class InitialConvblock(nn.Module):
     self.pad = 2
     self.conv1 = nn.Conv2d(in_size, out_size, self.kernelSize, self.stride, self.pad)
     self.batchnorm1 = nn.BatchNorm2d(out_size)
-    self.maxpool = nn.AdaptiveMaxPool2d(56)
+    self.maxpool = nn.AdaptiveMaxPool2d(initialOutputSize)
 
   def InitialConvblock(self, x):    
     x = self.maxpool(F.relu(self.batchnorm1(self.conv1(x))))
@@ -54,7 +60,6 @@ class ResBlock(nn.Module):
     self.conv1 = nn.Conv2d(in_size, hidden_layer_size, self.kernelSize1, self.initialStride, self.pad0)
     self.conv2 = nn.Conv2d(hidden_layer_size, hidden_layer_size, self.kernelSize3, self.stride1, self.pad0)
     self.conv3 = nn.Conv2d(hidden_layer_size, out_size, self.kernelSize1, self.stride1, self.pad1)
-    #self.conv3 = nn.Conv2d(in_size, out_size, self.kernelSize1, self.stride1, self.pad1) #Use if final conv for block
 
     self.convShortcut = nn.Conv2d(in_size, out_size, self.kernelSize1, self.stride1, self.pad0)
     self.convShortcutResize = nn.Conv2d(in_size, out_size, self.kernelSize1, self.stride2, self.pad0) #Use if Final shortcut for block
@@ -68,8 +73,7 @@ class ResBlock(nn.Module):
     else:
       shortcut = self.convShortcut(x)
     blockOutput = F.relu(self.batchnorm2(self.conv3(F.relu(self.batchnorm1(self.conv2(F.relu(self.batchnorm1(self.conv1(x))))))))) 
-    #print(shortcut.size())
-    #print(blockOutput.size())
+
     return shortcut + blockOutput
 
   def forward(self, x, resizeShortcut=False): return self.resblock(x, resizeShortcut)
@@ -104,7 +108,7 @@ class ResNet(nn.Module):
     x = self.convBlock1(x)
     
     x = self.block2b(self.block2b(self.block2a(x)))
-    
+        
     x = self.block3b(self.block3b(self.block3b(self.block3a(x, True))))
     
     x = self.block4b(self.block4b(self.block4b(self.block4b(self.block4b(self.block4a(x, True))))))
@@ -118,9 +122,6 @@ class ResNet(nn.Module):
 
     return x
 
-#We now write a function to calculate the loss of the mini batch 
-#Takes in our resnet, a specified loss function, mini batches for input and target data, 
-#and an optional optimizer (needed for training but not for evaluation)
 def loss_batch(model, loss_func, xb, yb, opt=None, scheduler=None):  
 
   loss = loss_func(model(xb), yb.long())
@@ -138,20 +139,22 @@ def loss_batch(model, loss_func, xb, yb, opt=None, scheduler=None):
 
 def accuracy(out, yb):  
   preds = torch.argmax(out, dim=1)
-  return (preds == yb).float().mean()
+  return (preds == yb).float().mean() #Need to convert to float for mean to work
 
-def train_model(epochs, model, loss_func, opt, train_dl, valid_dl, device, savePath, scheduler=None):
+def train_model(epochs, model, loss_func, opt, train_dl, test_dl, device, savePath, scheduler=None):
   for epoch in range(epochs):
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
     print("Beginning Epoch at ", current_time)
     
     model.train()
-    print(len(train_dl.dataset))
     i = 0
     running_loss = 0
     displayInterval = 50
-    for xb, yb, in train_dl:
+
+    for xb, yb, in train_dl: #xb and yb could be wrong size?
+      #print(xb.size())
+      #print(yb.size())
       xb = xb.to(device)
       yb = yb.to(device)
       loss, acc, num = loss_batch(model, loss_func, xb, yb, opt, scheduler)
@@ -164,7 +167,6 @@ def train_model(epochs, model, loss_func, opt, train_dl, valid_dl, device, saveP
         running_loss = 0
       i += 1
 
-
     print("Evaluating Model")
     model.eval()
     #No gradient computation for evaluation mode
@@ -172,7 +174,7 @@ def train_model(epochs, model, loss_func, opt, train_dl, valid_dl, device, saveP
       accs = []
       losses = []
       nums = []
-      for xb, yb in valid_dl:
+      for xb, yb in test_dl:
         acc, loss, num = loss_batch(model, loss_func, xb.to(device), yb.to(device))
         accs.append(acc)
         losses.append(loss)
@@ -194,7 +196,7 @@ def get_train_dataset(dir):
     transforms.RandomResizedCrop(imageSize),
     transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) #Check if std deviation should be set
+    transforms.Normalize(mean=[0.485, 0.455, 0.405], std=[0.229, 0.224, 0.225]) #Check if std deviation should be set
   ])
 
   trainDataset = datasets.ImageFolder(dir, trainTransforms)
@@ -205,7 +207,7 @@ def get_val_dataset(dir):
     
   valTransforms = transforms.Compose([    
   transforms.ToTensor(),
-  transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]) #Check if std deviation should be set
+  transforms.Normalize(mean=[0.485, 0.455, 0.405], std=[0.229, 0.224, 0.225]) #Check if std deviation should be set
   ])
   valDataset = datasets.ImageFolder(dir, valTransforms)
   
@@ -220,8 +222,7 @@ def getDataloaders(dataDir, valDir, batchSize, workers=0, pin_memory=False): #Ca
   return trainLoader, valLoader
 
 #Hyperparameters
-bs = 128 #Max batch size is 128, GPUs already at capacity more or less
-#lr = sqrt(0.1)
+bs = 64 #Max batch size is 128
 lr = math.sqrt(0.1)
 n_epochs = 2
 loss_func = F.cross_entropy
@@ -233,10 +234,10 @@ trainDir = "/home/mcvi0001/A^2_Net_Code/tiny-imagenet-200/train"
 testDir = "/home/mcvi0001/A^2_Net_Code/tiny-imagenet-200/test"
 valDir = "/home/mcvi0001/A^2_Net_Code/tiny-imagenet-200/val"
 
-trainDL, testDL = getDataloaders(trainDir, testDir, bs)
-
 print(torch.cuda.get_device_name(0))
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+trainDL, testDL = getDataloaders(trainDir, testDir, bs)
 
 #Model/optimizer
 model = ResNet(numClasses)
@@ -244,13 +245,14 @@ optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
 
 if torch.cuda.device_count() > 1:
   print("Let's use", torch.cuda.device_count(), "GPUs!")
-  # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
   model = nn.DataParallel(model)
 
 model.to(device)
-
+#print(model)
+#summary(model.cuda(), (3, 224, 224))
+summary(models.resnet50(False).cuda(), (3, 224, 224))
 #train 
-train_model(n_epochs, model, loss_func, optimizer, trainDL, testDL, device, outputFile)
+#train_model(n_epochs, model, loss_func, optimizer, trainDL, testDL, device, outputFile)
 
 now = datetime.now()
 
