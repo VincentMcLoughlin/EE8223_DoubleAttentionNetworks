@@ -7,7 +7,7 @@ from torchsummary import summary
 
 class InitialConvblock(nn.Module): #Double check this with the paper
     def __init__(self, in_size, out_size, stride=2):
-        super(InitialConvblock, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(in_size, out_size, stride=stride, kernel_size=7, padding=1) #SHOULD STRIDE BE 2, KERNEL 7?
         self.batchnorm1 = nn.BatchNorm2d(out_size)
         self.relu = nn.ReLU()
@@ -25,7 +25,7 @@ class InitialConvblock(nn.Module): #Double check this with the paper
 
 class BasicBlock(nn.Module):
     def __init__(self, in_size, out_size, stride=1): #May need resizing parameter
-        super(BasicBlock, self).__init__()
+        super().__init__()
 
         self.conv1 = nn.Conv2d(in_size, out_size, kernel_size=3, stride=stride, padding=1)
         self.batchnorm1 = nn.BatchNorm2d(out_size)
@@ -48,7 +48,7 @@ class BasicBlock(nn.Module):
 class ResNet(nn.Module):
 
     def __init__(self, blockType, numChannels, numConv2Duplicates, numConv3Duplicates, numConv4Duplicates, numConv5Duplicates, numClasses):
-        
+        super().__init__()
 
         self.conv1 = InitialConvblock(numChannels, 32, stride=2)
         self.conv2 = self.makeLayer(blockType, numConv2Duplicates, in_size=32, out_size=64)
@@ -59,10 +59,10 @@ class ResNet(nn.Module):
         self.fc = nn.Linear(512, numClasses)
 
 
-    def makeLayer(self, block, numDuplicates, initialStride, in_size, out_size):
+    def makeLayer(self, block, numDuplicates, in_size, out_size, initialStride=1, ):
         resnetLayer = []
 
-        firstBlock = block(in_size, out_size, stride)
+        firstBlock = block(in_size, out_size, initialStride)
 
         resnetLayer.append(firstBlock)
 
@@ -77,4 +77,4 @@ class ResNet(nn.Module):
         return x
 
 model = ResNet(BasicBlock, 3, 2, 2, 2, 2, 10)
-print(mode)
+print(model)
