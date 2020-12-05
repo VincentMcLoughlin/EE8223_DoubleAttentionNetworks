@@ -139,9 +139,9 @@ class ResNet(nn.Module):
         self.conv1 = InitialConvblock(in_size=numChannels, out_size=32, stride=2)
         self.conv2 = self.makeLayer(blockType, numConv2Duplicates,1, in_size=32, out_size=64)
         self.conv3 = self.makeLayer(blockType, numConv3Duplicates,2, in_size=64*4, out_size=128)
-        self.doubleABlock3 = self.makeAttentionLayer(numAttentionDuplicates, c_n, in_size=128*4, out_size=128*4)
+        #self.doubleABlock3 = self.makeAttentionLayer(numAttentionDuplicates, c_n, in_size=128*4, out_size=128*4)
         self.conv4 = self.makeLayer(blockType, numConv4Duplicates,2, in_size=128*4, out_size=256)
-        self.doubleABlock4 = self.makeAttentionLayer(numAttentionDuplicates, c_n, in_size=256*4, out_size=256*4)
+        #self.doubleABlock4 = self.makeAttentionLayer(numAttentionDuplicates, c_n, in_size=256*4, out_size=256*4)
         self.conv5 = self.makeLayer(blockType, numConv5Duplicates,2, in_size=256*4, out_size=512)        
         self.globalAvg = nn.AdaptiveAvgPool2d((1,1)) #Is this better?
         self.fc = nn.Linear(2048, numClasses)
@@ -203,12 +203,12 @@ def accuracy(output, target, topk=(1,)):
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 
-def train(train_loader, model, criterion, optimizer, device, args, PATH):
+def train(train_loader, model, criterion, optimizer, device, PATH, numEpochs):
     
     print_freq = 10
-    model.train()
-    numEpochs = 120
+    model.train()    
     currEpoch = 0
+    total_step = len(train_loader)
     while currEpoch < numEpochs:    
         for i, (images, labels) in enumerate(train_loader):
             images = images.to(device)
@@ -225,7 +225,7 @@ def train(train_loader, model, criterion, optimizer, device, args, PATH):
 
             if i % print_freq == 0:
                 print ("Epoch [{}/{}], Step [{}/{}] Loss: {:.4f}"
-                    .format(currEpoch+1, num_epochs, i+1, total_step, loss.item()))
+                    .format(currEpoch+1, numEpochs, i+1, total_step, loss.item()))
 
 
         model.eval()
@@ -255,32 +255,38 @@ def train(train_loader, model, criterion, optimizer, device, args, PATH):
 
 #model = ResNet(BasicBlock, 3, 2, 2, 2, 2, 10)
 numClasses = 200
-learning_rate = 0.0001
+#learning_rate = 0.0001 This learning rate works
+#learning_rate = 0.001 This also works
+#learning_rate = 0.001/5 #This learning rate also works, best one so far, 24.89 after three epochs
+learning_rate = 0.001/4 #This learning rate also works, 25.14 after three epochs
+learning_rate = 0.001/3 #This learning rate also works, 25.35 after three epochs
+learning_rate = 0.001/2 #This learning rate also works, 26.87 after three epochs
 bs = 128
-numEpochs = 100
+numEpochs = 5
 c_n = 4
 numAttentionDuplicates = 5
-cropSize = 224
+cropSize = 32
 numChannels=3
-#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+PATH = 'newResnet.ckpt'
 
-model = ResNet(BottleneckBlock, numChannels, 3, 4, 6, 3, numClasses, c_n, numAttentionDuplicates) #.to(device)
+model = ResNet(BottleneckBlock, numChannels, 3, 4, 6, 3, numClasses, c_n, numAttentionDuplicates).to(device)
 
-# if torch.cuda.device_count() > 1:
-#   print("Let's use", torch.cuda.device_count(), "GPUs!")
-#   model = nn.DataParallel(model)
+if torch.cuda.device_count() > 1:
+  print("Let's use", torch.cuda.device_count(), "GPUs!")
+  model = nn.DataParallel(model)
 
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-x = torch.ones(1,3,224,224)
-z = model(x)
-print(z.size())
-print(model)
-summary(model.cuda(), (3, 224, 224))
+# x = torch.ones(1,3,224,224)
+# z = model(x)
+# print(z.size())
+#print(model)
+#summary(model.cuda(), (3, 224, 224))
+#exit()
 
-exit()
 transform_train = transforms.Compose([
     #transforms.ToPILImage(),
     #transforms.RandomCrop(cropSize, padding=4), #Need to change these when doing imagenet
@@ -315,5 +321,4 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=bs, 
                                           shuffle=False)
 
-#train(numEpochs, train_loader, model, criterion, optimizer, args, PATH)
-
+train(train_loader, model, criterion, optimizer, device, PATH, numEpochs)
