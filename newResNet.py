@@ -7,49 +7,9 @@ from torchsummary import summary
 from torch.autograd import Variable
 import torch.nn.functional as F
 
-# Not written by me, obtained from https://github.com/gjylt/DoubleAttentionNet
-class DoubleAttentionLayerA(nn.Module):
-    def __init__(self, in_channels, c_m, c_n,k =1 ):
-        super(DoubleAttentionLayerA, self).__init__()
 
-        self.K           = k
-        self.c_m = c_m
-        self.c_n = c_n
-        self.softmax     = nn.Softmax()
-        self.in_channels = in_channels
-
-        self.convA = nn.Conv2d(in_channels, c_m, 1)
-        self.convB = nn.Conv2d(in_channels, c_n, 1)
-        self.convV = nn.Conv2d(in_channels, c_n, 1)
-
-    def forward(self, x):
-
-        b, c, h, w = x.size()
-
-        assert c == self.in_channels,'input channel not equal!'
-        #assert b//self.K == self.in_channels, 'input channel not equal!'
-
-        A = self.convA(x)
-        B = self.convB(x)
-        V = self.convV(x)
-
-        batch = int(b/self.K)
-
-        tmpA = A.view( batch, self.K, self.c_m, h*w ).permute(0,2,1,3).view( batch, self.c_m, self.K*h*w )
-        tmpB = B.view( batch, self.K, self.c_n, h*w ).permute(0,2,1,3).view( batch*self.c_n, self.K*h*w )
-        tmpV = V.view( batch, self.K, self.c_n, h*w ).permute(0,1,3,2).contiguous().view( int(b*h*w), self.c_n )
-
-        softmaxB = self.softmax(tmpB).view( batch, self.c_n, self.K*h*w ).permute( 0, 2, 1)  #batch, self.K*h*w, self.c_n
-        softmaxV = self.softmax(tmpV).view( batch, self.K*h*w, self.c_n ).permute( 0, 2, 1)  #batch, self.c_n  , self.K*h*w
-
-        tmpG     = tmpA.matmul( softmaxB )      #batch, self.c_m, self.c_n
-        tmpZ     = tmpG.matmul( softmaxV ) #batch, self.c_m, self.K*h*w
-        tmpZ     = tmpZ.view(batch, self.c_m, self.K,h*w).permute( 0, 2, 1,3).view( int(b), self.c_m, h, w )
-
-        return tmpZ
-# Not written by me, obtained from https://github.com/gjylt/DoubleAttentionNet
 # Not written by me, obtained from https://github.com/nguyenvo09/Double-Attention-Network/blob/master/double_attention_layer.py
-class DoubleAttentionLayerB(nn.Module):
+class DoubleAttentionLayer(nn.Module):
     """
     Implementation of Double Attention Network. NIPS 2018
     """
@@ -62,7 +22,7 @@ class DoubleAttentionLayerB(nn.Module):
         c_n
         reconstruct: `bool` whether to re-construct output to have shape (B, in_channels, L, R)
         """
-        super(DoubleAttentionLayerB, self).__init__()
+        super(DoubleAttentionLayer, self).__init__()
         self.c_m = c_m
         self.c_n = c_n
         self.in_channels = in_channels
@@ -101,12 +61,12 @@ class DoubleAttentionLayerB(nn.Module):
 
 
 class InitialConvblock(nn.Module): #Double check this with the paper
-    def __init__(self, in_size, out_size, stride=2):
+    def __init__(self, in_size, out_size, stride=2, kernel_size=5):
         super().__init__()
-        self.conv1 = nn.Conv2d(in_size, out_size, stride=stride, kernel_size=7, padding=1) #SHOULD STRIDE BE 2, KERNEL 7?
+        self.conv1 = nn.Conv2d(in_size, out_size, stride=stride, kernel_size=kernel_size, padding=2) #SHOULD STRIDE BE 2, KERNEL 7?
         self.batchnorm1 = nn.BatchNorm2d(out_size)
         self.relu = nn.ReLU(inplace=True)
-        self.pool = nn.MaxPool2d(kernel_size=3, stride=2)    
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)    
 
     def forward(self, x):       
         return self.pool(self.relu(self.batchnorm1(self.conv1(x))))
@@ -179,32 +139,34 @@ class ResNet(nn.Module):
         self.conv1 = InitialConvblock(in_size=numChannels, out_size=32, stride=2)
         self.conv2 = self.makeLayer(blockType, numConv2Duplicates,1, in_size=32, out_size=64)
         self.conv3 = self.makeLayer(blockType, numConv3Duplicates,2, in_size=64*4, out_size=128)
-        self.doubleABlock3 = self.makeAttentionLayer(numAttentionDuplicates, c_n, in_size=128, out_size=128)
-        self.conv4 = self.makeLayer(blockType, numConv3Duplicates,2, in_size=128*4, out_size=256)
-        self.doubleABlock4 = self.makeAttentionLayer(numAttentionDuplicates, c_n, in_size=256, out_size=256)
-        self.conv5 = self.makeLayer(blockType, numConv4Duplicates,2, in_size=256*4, out_size=512)
-        #self.globalAvg = nn.AvgPool2d(kernel_size=4, stride=2) #stride should be size of feature map (8?)
+        self.doubleABlock3 = self.makeAttentionLayer(numAttentionDuplicates, c_n, in_size=128*4, out_size=128*4)
+        self.conv4 = self.makeLayer(blockType, numConv4Duplicates,2, in_size=128*4, out_size=256)
+        self.doubleABlock4 = self.makeAttentionLayer(numAttentionDuplicates, c_n, in_size=256*4, out_size=256*4)
+        self.conv5 = self.makeLayer(blockType, numConv5Duplicates,2, in_size=256*4, out_size=512)        
         self.globalAvg = nn.AdaptiveAvgPool2d((1,1)) #Is this better?
         self.fc = nn.Linear(2048, numClasses)
 
 
     #def makeLayer(self, block, numDuplicates, in_size, out_size, initialStride=1):
-    def makeLayer(self, block, numDuplicates, stride, in_size, out_size):
+    def makeLayer(self, block, numDuplicates, initialStride, in_size, out_size): #Problem with this layer
 
-        strides = [stride] + [1] * (numDuplicates - 1)
         layers = []
+        stride=1
         in_channels = in_size
-        for stride in strides:
+        firstBlock = block(in_channels,out_size,initialStride)
+        layers.append(firstBlock)
+        in_channels = out_size*4
+        for i in range(1, numDuplicates):
             layers.append(block(in_channels, out_size, stride))
             in_channels = out_size * 4
-
+        
         return nn.Sequential(*layers)
 
     def makeAttentionLayer(self, numDuplicates, c_n, in_size, out_size, stride=1):
         attentionLayer = []
 
         for i in range(0,numDuplicates):
-            attentionLayer.append(DoubleAttentionLayerB(in_size, out_size, c_n, reconstruct=True))
+            attentionLayer.append(DoubleAttentionLayer(in_size, out_size, c_n, reconstruct=True))
 
         finishedLayer = nn.Sequential(*attentionLayer)
 
@@ -214,14 +176,13 @@ class ResNet(nn.Module):
         
         output = self.conv1(x)        
         output = self.conv2(output)
-        output = self.conv3(output)
-        #output = self.doubleAblock3(output)
+        output = self.conv3(output)        
+        #output = self.doubleABlock3(output)
         output = self.conv4(output)
         #output = self.doubleABlock4(output)
-        output = self.conv5(output)
-        print(output.size())
+        output = self.conv5(output)        
         output = self.globalAvg(output)
-        print(output.size())
+        
         output = output.view(output.size(0),-1)
         output = self.fc(output)
         return output
@@ -299,9 +260,11 @@ bs = 128
 numEpochs = 100
 c_n = 4
 numAttentionDuplicates = 5
+cropSize = 224
+numChannels=3
 #device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-model = ResNet(BottleneckBlock, 3, 3, 4, 6, 3, numClasses, c_n, numAttentionDuplicates) #.to(device)
+model = ResNet(BottleneckBlock, numChannels, 3, 4, 6, 3, numClasses, c_n, numAttentionDuplicates) #.to(device)
 
 # if torch.cuda.device_count() > 1:
 #   print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -314,17 +277,14 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 x = torch.ones(1,3,224,224)
 z = model(x)
 print(z.size())
-
-in_channels = 10
-c_m = 4
-c_n = 3
-doubleA1 = DoubleAttentionLayerA(in_channels, c_m, c_n)
-doubleA2 = DoubleAttentionLayerB(in_channels,c_m,c_n)
+print(model)
+summary(model.cuda(), (3, 224, 224))
 
 exit()
 transform_train = transforms.Compose([
     #transforms.ToPILImage(),
-    transforms.RandomCrop(32, padding=4), #Need to change these when doing imagenet
+    #transforms.RandomCrop(cropSize, padding=4), #Need to change these when doing imagenet
+    transforms.RandomCrop(cropSize),
     transforms.RandomHorizontalFlip(),
     transforms.RandomRotation(15),
     transforms.ToTensor(),
