@@ -9,8 +9,14 @@
 # inputFile = open('resnet_n=9_88_86%.txt', 'r')
 # outputFile = open('n=9_results.txt', 'w')
 
-inputFile = open('resnet_n=18_87_66%.txt', 'r')
-outputFile = open('n=18_results.txt', 'w')
+# inputFile = open('resnet_n=18_87_66%.txt', 'r')
+# outputFile = open('n=18_results.txt', 'w')
+
+# inputFile = open('resnet_n=5_90_64%.txt', 'r')
+# outputFile = open('n=5_results.txt', 'w')
+
+inputFile = open('resnet_n=3_89_58%.txt', 'r')
+outputFile = open('n=3_results.txt', 'w')
 
 lines = inputFile.readlines() 
 numItString = "NumIterations:"
