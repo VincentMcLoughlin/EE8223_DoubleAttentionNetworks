@@ -150,54 +150,56 @@ def image_loader(image_path):
     testimage = Variable(testimage, requires_grad=True)
     return testimage
 
-class WrappedModel(nn.Module):
-	def __init__(self, module):
-		super(WrappedModel, self).__init__()
-		self.module = module # that I actually define.
-	def forward(self, x):
-		return self.module(x)
-
-
-model = getattr(models, args.model)(args)
-model = WrappedModel(model)
-state_dict = torch.load(modelname)['state_dict']
-model.load_state_dict(state_dict)
+labels = {
+    0:"airplane",
+    1:"automobile",
+    2:"bird",
+    3:"cat",
+    4:"deer",
+    5:"dog",
+    6:"frog",
+    7:"horse",
+    8:"ship",
+    9:"truck"
+}
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 n = 7 #90.39% accuracy with n=7
 numChannels = 3
 numClasses = 10
-#took 3 tries with n=9
-#Took 3 tries with n=9
-#Took like 6 with n=7
-#n=5 worked once out of like 10 times 
-#n=3 never worked
-#FILE = 'resnet_n={}.txt'.format(n)
-PATH = 'resnet_n={}_test.ckpt'.format(n)
+#PATH = 'resnet_n={}_test.ckpt'.format(n)
+PATH = 'n=5_state_dict_90_64%.ckpt'
 
 print(PATH)
 
 device = 'cpu'
 model = ResNet(BasicBlock, numChannels, n, n, n, numClasses)
-model = nn.DataParallel(model)
-model.load_state_dict(torch.load(PATH, map_location=device), strict=False)
-model.eval()
 
-trans = transforms.Compose([
-    transforms.RandomHorizontalFlip(),
+#model = WrappedModel(model)
+state_dict = torch.load(PATH, map_location=device)
+model.load_state_dict(state_dict, strict=False)
+
+#model = nn.DataParallel(model)
+#model.load_state_dict(torch.load(PATH, map_location=device), strict=False)
+model = model.eval()
+
+trans = transforms.Compose([    
     transforms.Resize(32),
     transforms.CenterCrop(32),
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5))
     ])
 
-IMAGE_PATH="car.jpg"
+#IMAGE_PATH="car.jpg"
+#IMAGE_PATH='car2.jfif'
+IMAGE_PATH='car4.jfif'
 image = Image.open(IMAGE_PATH)
 inputImage = trans(image)
 
 inputImage = inputImage.view(1, 3, 32,32)
 
 output = model(inputImage)
-print(output)
+#print(output)
 prediction = int(torch.max(output.data, 1)[1].numpy())
-print(prediction)
+
+print(labels[prediction])
