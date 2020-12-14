@@ -1,0 +1,253 @@
+Epoch:1 TotalEpochs:150 Itr:1 Step:[1/391] Loss:2.6722 
+
+Epoch:1 TotalEpochs:150 Itr:11 Step:[11/391] Loss:2.9384 
+
+Epoch:1 TotalEpochs:150 Itr:21 Step:[21/391] Loss:2.3443 
+
+Epoch:1 TotalEpochs:150 Itr:31 Step:[31/391] Loss:2.3003 
+
+Epoch:1 TotalEpochs:150 Itr:41 Step:[41/391] Loss:2.3454 
+
+Epoch:1 TotalEpochs:150 Itr:51 Step:[51/391] Loss:2.2726 
+
+Epoch:1 TotalEpochs:150 Itr:61 Step:[61/391] Loss:2.3028 
+
+Epoch:1 TotalEpochs:150 Itr:71 Step:[71/391] Loss:2.2846 
+
+Epoch:1 TotalEpochs:150 Itr:81 Step:[81/391] Loss:2.2985 
+
+Epoch:1 TotalEpochs:150 Itr:91 Step:[91/391] Loss:2.2977 
+
+Epoch:1 TotalEpochs:150 Itr:101 Step:[101/391] Loss:2.2807 
+
+Epoch:1 TotalEpochs:150 Itr:111 Step:[111/391] Loss:2.2431 
+
+Epoch:1 TotalEpochs:150 Itr:121 Step:[121/391] Loss:2.2554 
+
+Epoch:1 TotalEpochs:150 Itr:131 Step:[131/391] Loss:2.2752 
+
+Epoch:1 TotalEpochs:150 Itr:141 Step:[141/391] Loss:2.2514 
+
+Epoch:1 TotalEpochs:150 Itr:151 Step:[151/391] Loss:2.2302 
+
+Epoch:1 TotalEpochs:150 Itr:161 Step:[161/391] Loss:2.2400 
+
+Epoch:1 TotalEpochs:150 Itr:171 Step:[171/391] Loss:2.1867 
+
+Epoch:1 TotalEpochs:150 Itr:181 Step:[181/391] Loss:2.1923 
+
+Epoch:1 TotalEpochs:150 Itr:191 Step:[191/391] Loss:2.1817 
+
+Epoch:1 TotalEpochs:150 Itr:201 Step:[201/391] Loss:2.2097 
+
+Epoch:1 TotalEpochs:150 Itr:211 Step:[211/391] Loss:2.1463 
+
+Epoch:1 TotalEpochs:150 Itr:221 Step:[221/391] Loss:2.1760 
+
+Epoch:1 TotalEpochs:150 Itr:231 Step:[231/391] Loss:2.0247 
+
+Epoch:1 TotalEpochs:150 Itr:241 Step:[241/391] Loss:2.0644 
+
+Epoch:1 TotalEpochs:150 Itr:251 Step:[251/391] Loss:2.0659 
+
+Epoch:1 TotalEpochs:150 Itr:261 Step:[261/391] Loss:1.9630 
+
+Epoch:1 TotalEpochs:150 Itr:271 Step:[271/391] Loss:2.0195 
+
+Epoch:1 TotalEpochs:150 Itr:281 Step:[281/391] Loss:1.9569 
+
+Epoch:1 TotalEpochs:150 Itr:291 Step:[291/391] Loss:1.9834 
+
+Epoch:1 TotalEpochs:150 Itr:301 Step:[301/391] Loss:1.9590 
+
+Epoch:1 TotalEpochs:150 Itr:311 Step:[311/391] Loss:1.9155 
+
+Epoch:1 TotalEpochs:150 Itr:321 Step:[321/391] Loss:1.9161 
+
+Epoch:1 TotalEpochs:150 Itr:331 Step:[331/391] Loss:1.8493 
+
+Epoch:1 TotalEpochs:150 Itr:341 Step:[341/391] Loss:1.8381 
+
+Epoch:1 TotalEpochs:150 Itr:351 Step:[351/391] Loss:1.9084 
+
+Epoch:1 TotalEpochs:150 Itr:361 Step:[361/391] Loss:1.7575 
+
+Epoch:1 TotalEpochs:150 Itr:371 Step:[371/391] Loss:1.8376 
+
+Epoch:1 TotalEpochs:150 Itr:381 Step:[381/391] Loss:1.7543 
+
+Epoch:1 TotalEpochs:150 Itr:391 Step:[391/391] Loss:1.8346 
+
+NumIterations: 391 Epoch Accuracy of the model on the test images: 34.37 % 
+
+Epoch:2 TotalEpochs:150 Itr:392 Step:[1/391] Loss:1.7568 
+
+Epoch:2 TotalEpochs:150 Itr:402 Step:[11/391] Loss:2.6058 
+
+Epoch:2 TotalEpochs:150 Itr:412 Step:[21/391] Loss:2.3717 
+
+Epoch:2 TotalEpochs:150 Itr:422 Step:[31/391] Loss:2.3373 
+
+Epoch:2 TotalEpochs:150 Itr:432 Step:[41/391] Loss:2.2964 
+
+Epoch:2 TotalEpochs:150 Itr:442 Step:[51/391] Loss:2.3076 
+
+Epoch:2 TotalEpochs:150 Itr:452 Step:[61/391] Loss:2.3123 
+
+Epoch:2 TotalEpochs:150 Itr:462 Step:[71/391] Loss:2.3102 
+
+Epoch:2 TotalEpochs:150 Itr:472 Step:[81/391] Loss:2.3161 
+
+Epoch:2 TotalEpochs:150 Itr:482 Step:[91/391] Loss:2.3097 
+
+Epoch:2 TotalEpochs:150 Itr:492 Step:[101/391] Loss:2.3092 
+
+Epoch:2 TotalEpochs:150 Itr:502 Step:[111/391] Loss:2.2922 
+
+Epoch:2 TotalEpochs:150 Itr:512 Step:[121/391] Loss:2.2786 
+
+Epoch:2 TotalEpochs:150 Itr:522 Step:[131/391] Loss:2.2992 
+
+Epoch:2 TotalEpochs:150 Itr:532 Step:[141/391] Loss:2.1715 
+
+Epoch:2 TotalEpochs:150 Itr:542 Step:[151/391] Loss:2.0745 
+
+Epoch:2 TotalEpochs:150 Itr:552 Step:[161/391] Loss:2.1727 
+
+Epoch:2 TotalEpochs:150 Itr:562 Step:[171/391] Loss:2.1671 
+
+Epoch:2 TotalEpochs:150 Itr:572 Step:[181/391] Loss:2.1709 
+
+Epoch:2 TotalEpochs:150 Itr:582 Step:[191/391] Loss:2.0928 
+
+Epoch:2 TotalEpochs:150 Itr:592 Step:[201/391] Loss:2.1458 
+
+Epoch:2 TotalEpochs:150 Itr:602 Step:[211/391] Loss:2.0966 
+
+Epoch:2 TotalEpochs:150 Itr:612 Step:[221/391] Loss:2.1609 
+
+Epoch:2 TotalEpochs:150 Itr:622 Step:[231/391] Loss:2.0860 
+
+Epoch:2 TotalEpochs:150 Itr:632 Step:[241/391] Loss:2.0341 
+
+Epoch:2 TotalEpochs:150 Itr:642 Step:[251/391] Loss:2.0054 
+
+Epoch:2 TotalEpochs:150 Itr:652 Step:[261/391] Loss:2.0636 
+
+Epoch:2 TotalEpochs:150 Itr:662 Step:[271/391] Loss:2.1393 
+
+Epoch:2 TotalEpochs:150 Itr:672 Step:[281/391] Loss:2.0846 
+
+Epoch:2 TotalEpochs:150 Itr:682 Step:[291/391] Loss:2.0825 
+
+Epoch:2 TotalEpochs:150 Itr:692 Step:[301/391] Loss:1.9548 
+
+Epoch:2 TotalEpochs:150 Itr:702 Step:[311/391] Loss:1.9851 
+
+Epoch:2 TotalEpochs:150 Itr:712 Step:[321/391] Loss:2.0711 
+
+Epoch:2 TotalEpochs:150 Itr:722 Step:[331/391] Loss:2.0271 
+
+Epoch:2 TotalEpochs:150 Itr:732 Step:[341/391] Loss:2.0198 
+
+Epoch:2 TotalEpochs:150 Itr:742 Step:[351/391] Loss:2.0111 
+
+Epoch:2 TotalEpochs:150 Itr:752 Step:[361/391] Loss:1.9742 
+
+Epoch:2 TotalEpochs:150 Itr:762 Step:[371/391] Loss:1.9967 
+
+Epoch:2 TotalEpochs:150 Itr:772 Step:[381/391] Loss:2.0781 
+
+Epoch:2 TotalEpochs:150 Itr:782 Step:[391/391] Loss:2.0160 
+
+NumIterations: 782 Epoch Accuracy of the model on the test images: 21.79 % 
+
+Epoch:3 TotalEpochs:150 Itr:783 Step:[1/391] Loss:2.0588 
+
+Epoch:3 TotalEpochs:150 Itr:793 Step:[11/391] Loss:2.0371 
+
+Epoch:3 TotalEpochs:150 Itr:803 Step:[21/391] Loss:1.9292 
+
+Epoch:3 TotalEpochs:150 Itr:813 Step:[31/391] Loss:2.0594 
+
+Epoch:3 TotalEpochs:150 Itr:823 Step:[41/391] Loss:2.0208 
+
+Epoch:3 TotalEpochs:150 Itr:833 Step:[51/391] Loss:2.0993 
+
+Epoch:3 TotalEpochs:150 Itr:843 Step:[61/391] Loss:1.9889 
+
+Epoch:3 TotalEpochs:150 Itr:853 Step:[71/391] Loss:2.0137 
+
+Epoch:3 TotalEpochs:150 Itr:863 Step:[81/391] Loss:2.0521 
+
+Epoch:3 TotalEpochs:150 Itr:873 Step:[91/391] Loss:2.0896 
+
+Epoch:3 TotalEpochs:150 Itr:883 Step:[101/391] Loss:2.0220 
+
+Epoch:3 TotalEpochs:150 Itr:893 Step:[111/391] Loss:2.0050 
+
+Epoch:3 TotalEpochs:150 Itr:903 Step:[121/391] Loss:1.9907 
+
+Epoch:3 TotalEpochs:150 Itr:913 Step:[131/391] Loss:1.9447 
+
+Epoch:3 TotalEpochs:150 Itr:923 Step:[141/391] Loss:1.9035 
+
+Epoch:3 TotalEpochs:150 Itr:933 Step:[151/391] Loss:1.8843 
+
+Epoch:3 TotalEpochs:150 Itr:943 Step:[161/391] Loss:1.9818 
+
+Epoch:3 TotalEpochs:150 Itr:953 Step:[171/391] Loss:1.9119 
+
+Epoch:3 TotalEpochs:150 Itr:963 Step:[181/391] Loss:1.9701 
+
+Epoch:3 TotalEpochs:150 Itr:973 Step:[191/391] Loss:1.9172 
+
+Epoch:3 TotalEpochs:150 Itr:983 Step:[201/391] Loss:1.8830 
+
+Epoch:3 TotalEpochs:150 Itr:993 Step:[211/391] Loss:2.0114 
+
+Epoch:3 TotalEpochs:150 Itr:1003 Step:[221/391] Loss:1.8880 
+
+Epoch:3 TotalEpochs:150 Itr:1013 Step:[231/391] Loss:1.9648 
+
+Epoch:3 TotalEpochs:150 Itr:1023 Step:[241/391] Loss:2.0526 
+
+Epoch:3 TotalEpochs:150 Itr:1033 Step:[251/391] Loss:2.1155 
+
+Epoch:3 TotalEpochs:150 Itr:1043 Step:[261/391] Loss:1.9014 
+
+Epoch:3 TotalEpochs:150 Itr:1053 Step:[271/391] Loss:1.9108 
+
+Epoch:3 TotalEpochs:150 Itr:1063 Step:[281/391] Loss:1.9998 
+
+Epoch:3 TotalEpochs:150 Itr:1073 Step:[291/391] Loss:1.8503 
+
+Epoch:3 TotalEpochs:150 Itr:1083 Step:[301/391] Loss:1.9478 
+
+Epoch:3 TotalEpochs:150 Itr:1093 Step:[311/391] Loss:1.8532 
+
+Epoch:3 TotalEpochs:150 Itr:1103 Step:[321/391] Loss:1.9487 
+
+Epoch:3 TotalEpochs:150 Itr:1113 Step:[331/391] Loss:1.9609 
+
+Epoch:3 TotalEpochs:150 Itr:1123 Step:[341/391] Loss:1.9009 
+
+Epoch:3 TotalEpochs:150 Itr:1133 Step:[351/391] Loss:1.8833 
+
+Epoch:3 TotalEpochs:150 Itr:1143 Step:[361/391] Loss:1.8072 
+
+Epoch:3 TotalEpochs:150 Itr:1153 Step:[371/391] Loss:1.9551 
+
+Epoch:3 TotalEpochs:150 Itr:1163 Step:[381/391] Loss:1.9310 
+
+Epoch:3 TotalEpochs:150 Itr:1173 Step:[391/391] Loss:1.9066 
+
+NumIterations: 1173 Epoch Accuracy of the model on the test images: 27.87 % 
+
+Epoch:4 TotalEpochs:150 Itr:1174 Step:[1/391] Loss:1.8380 
+
+Epoch:4 TotalEpochs:150 Itr:1184 Step:[11/391] Loss:1.8205 
+
+Epoch:4 TotalEpochs:150 Itr:1194 Step:[21/391] Loss:1.8782 
+
+Epoch:4 TotalEpochs:150 Itr:1204 Step:[31/391] Loss:1.8124 
