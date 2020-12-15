@@ -216,7 +216,9 @@ def train(train_loader, model, criterion, optimizer, device, PATH, numEpochs, FI
             'optimizer_state_dict': optimizer.state_dict(),
             'loss': loss            
             }, PATH)
-        torch.save(model.module.state_dict(), STATE_PATH)
+            
+        if torch.cuda.device_count() > 1:
+            torch.save(model.module.state_dict(), STATE_PATH)
         
         currEpoch += 1
 
@@ -236,7 +238,7 @@ numEpochs = 150
 cropSize = 32
 numChannels=3
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-n = 3
+n = 9
 
 FILE = 'resnet_n={}.txt'.format(n)
 PATH = 'resnet_n={}.ckpt'.format(n)
