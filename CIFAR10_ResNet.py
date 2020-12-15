@@ -3,14 +3,13 @@ import torch.nn as nn
 import torchvision
 from torchvision import transforms
 import math
-from torchsummary import summary
 from torch.autograd import Variable
 import torch.nn.functional as F
 import numpy as np
 
-class IdentityPadding(nn.Module):
+class IdentityShortcut(nn.Module):
     def __init__(self, num_filters, channels_in, stride):
-        super(IdentityPadding, self).__init__()        
+        super(IdentityShortcut, self).__init__()        
         self.identity = nn.MaxPool2d(1, stride=stride)
         self.num_zeros = num_filters - channels_in
     
@@ -29,7 +28,7 @@ class BasicBlock(nn.Module):
         self.blockType = "basic"
 
         if in_size != out_size:
-            self.projection = IdentityPadding(out_size, in_size, stride)
+            self.projection = IdentityShortcut(out_size, in_size, stride)
         else:
             self.projection = None
         
@@ -53,7 +52,7 @@ class BasicBlock(nn.Module):
             res = self.projection(x)
 
         output += res
-        out = self.relu2(output)
+        output = self.relu2(output)
 
         return output
 
@@ -79,7 +78,7 @@ class BottleneckBlock(nn.Module):
         if stride != 1 or in_size != out_size*4:
             self.shortcut = nn.Sequential(
                 nn.Conv2d(in_size, out_size*4, stride=stride, kernel_size=1, bias=False),
-                nn.BatchNorm2d(out_size*4) #May need to set batchnorm weights to 0
+                nn.BatchNorm2d(out_size*4)
             )
         else:
             self.shortcut = nn.Sequential()
@@ -108,28 +107,23 @@ class ResNet(nn.Module):
 
         self.conv2 = self._make_layer(blockType, 16, 16, numConv2Duplicates, 1)
         self.conv3 = self._make_layer(blockType, 16, 32, numConv3Duplicates, 2)
-        self.conv4 = self._make_layer(blockType, 32, 64, numConv4Duplicates, 2)       
-        #self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.conv4 = self._make_layer(blockType, 32, 64, numConv4Duplicates, 2)               
         self.avgpool = nn.AvgPool2d(8)
         self.fc = nn.Linear(64, numClasses)
 
     def _make_layer(self, block, in_size, out_size, num_blocks, stride):              
         layers = []
         layers.append(BasicBlock(in_size, out_size, stride))
-        for _ in range(num_blocks-1): #Double check this
+        for _ in range(num_blocks-1):
             layers.append(BasicBlock(out_size, out_size))
         
         return nn.Sequential(*layers)
 
     def forward(self, x):
         output = self.conv1(x)
-        #print(output.size())
         output = self.conv2(output)
-        #print(output.size())
         output = self.conv3(output)
-        #print(output.size())
-        output = self.conv4(output)
-        #print(output.size())        
+        output = self.conv4(output)  
         output = self.avgpool(output)
         output = output.view(output.size(0), -1)
         output = self.fc(output)
@@ -233,7 +227,7 @@ def getParams(model):
 
 numClasses = 10 
 learning_rate = 0.1
-#learning_rate=0.001 #Should be 0.1, use this for warmup for n=18
+#learning_rate=0.001 #Should usually be 0.1, but use this for n=18. Meant to be warmup rate but doesn't work
 useWarmup = False
 loadModel = False
 bs = 128
@@ -243,11 +237,7 @@ cropSize = 32
 numChannels=3
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 n = 3
-#took 3 tries with n=9
-#Took 3 tries with n=9
-#Took like 6 with n=7
-#n=5 worked once out of like 10 times 
-#n=3 never worked
+
 FILE = 'resnet_n={}.txt'.format(n)
 PATH = 'resnet_n={}.ckpt'.format(n)
 STATE_PATH = 'n={}_state_dict.ckpt'.format(n)
@@ -255,9 +245,6 @@ STATE_PATH = 'n={}_state_dict.ckpt'.format(n)
 model = ResNet(BasicBlock, numChannels, n, n, n, numClasses).to(device)
 
 numParams = getParams(model)
-print(numParams)
-print(model)
-summary(model.cuda(), (3, 32, 32))
 
 if torch.cuda.device_count() > 1:
   print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -269,11 +256,6 @@ optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, 
 
 if loadModel == True:
     model.load_state_dict(torch.load(PATH))
-# x = torch.ones(1,3,32,32)
-# z = model(x)
-# print(z.size())
-
-#exit()
 
 transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
@@ -288,12 +270,12 @@ transform_test = transforms.Compose([
 ])
 
 # CIFAR-10 dataset
-train_dataset = torchvision.datasets.CIFAR10(root='../cifar-10-data/',
+train_dataset = torchvision.datasets.CIFAR10(root='cifar-10-data/',
                                              train=True, 
                                              transform=transform_train,
                                              download=True)
 
-test_dataset = torchvision.datasets.CIFAR10(root='../cifar-10-data/',
+test_dataset = torchvision.datasets.CIFAR10(root='cifar-10-data/',
                                             train=False, 
                                             transform=transform_test)
 
