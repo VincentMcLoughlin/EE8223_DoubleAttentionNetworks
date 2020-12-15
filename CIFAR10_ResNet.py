@@ -8,17 +8,6 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import numpy as np
 
-class InitialConvblock(nn.Module): #Double check this with the paper
-    def __init__(self, in_size, out_size, stride=1, kernel_size=3):
-        super().__init__()
-        self.conv1 = nn.Conv2d(in_size, out_size, stride=stride, kernel_size=kernel_size, padding=1, bias=False) 
-        self.batchnorm1 = nn.BatchNorm2d(out_size)
-        self.relu = nn.ReLU(inplace=True)
-        #self.pool = nn.MaxPool2d(kernel_size=2, stride=2)    
-
-    def forward(self, x):       
-        return self.relu(self.batchnorm1(self.conv1(x)))
-
 class IdentityPadding(nn.Module):
     def __init__(self, num_filters, channels_in, stride):
         super(IdentityPadding, self).__init__()        
@@ -44,14 +33,14 @@ class BasicBlock(nn.Module):
         else:
             self.projection = None
         
-        self.conv1 = nn.Conv2d(in_size, out_size, kernel_size=3, stride=stride, padding=1)
+        self.conv1 = nn.Conv2d(in_size, out_size, kernel_size=3, stride=stride, padding=1, bias=False)
         self.batchnorm1 = nn.BatchNorm2d(out_size)
-        self.relu1 = nn.ReLU(inplace=True) #ReLU performed after addition, should I use inPlace?
-        self.conv2 = nn.Conv2d(out_size, out_size, kernel_size=3, stride=1, padding=1)
+        self.relu1 = nn.ReLU(inplace=True) 
+        self.conv2 = nn.Conv2d(out_size, out_size, kernel_size=3, stride=1, padding=1, bias=False)
         self.batchnorm2 = nn.BatchNorm2d(out_size) 
         self.relu2 = nn.ReLU(inplace=True)        
 
-    def forward(self, x): #Will need shortcut case
+    def forward(self, x):
 
         res = x       
         output = self.conv1(x)
@@ -113,7 +102,7 @@ class ResNet(nn.Module):
         self.in_channels = 16
 
         self.conv1 = nn.Sequential(
-            nn.Conv2d(numChannels, 16, kernel_size=3, padding=1, bias=True),
+            nn.Conv2d(numChannels, 16, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(16),
             nn.ReLU(inplace=True))
 
@@ -163,8 +152,9 @@ def accuracy(output, target, topk=(1,)):
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 
-def train(train_loader, model, criterion, optimizer, device, PATH, numEpochs):
+def train(train_loader, model, criterion, optimizer, device, PATH, numEpochs, FILE, useWarmup, learning_rate, STATE_PATH):
     
+    f = open(FILE, "w")
     print_freq = 10
     model.train()    
     currEpoch = 0
@@ -188,19 +178,27 @@ def train(train_loader, model, criterion, optimizer, device, PATH, numEpochs):
             optimizer.step()
 
             if i % print_freq == 0:
-                print ("Epoch:{} TotalEpochs:{} Itr:{} Step:[{}/{}] Loss:{:.4f} ".format(currEpoch+1, numEpochs, numIterations+1, i+1, total_step, loss.item()))    
+                updateString = "Epoch:{} TotalEpochs:{} Itr:{} Step:[{}/{}] Loss:{:.4f} \n".format(currEpoch+1, numEpochs, numIterations+1, i+1, total_step, loss.item())
+                f.write(updateString)
+                print(updateString)    
 
             numIterations += 1
 
+            if useWarmup and numIterations == 500:                
+                for g in optimizer.param_groups:
+                    print("Setting learning rate to 0.01")                    
+                    learning_rate = 0.01
+                    g['lr'] = learning_rate
+
             if numIterations == 32000:                
                 for g in optimizer.param_groups:                    
-                    newLearningRate = 0.1/10
-                    g['lr'] = newLearningRate
+                    learning_rate = learning_rate/10
+                    g['lr'] = learning_rate
 
             if numIterations == 48000:
-                newLearningRate = 0.01/10                
+                learning_rate = learning_rate/10                
                 for g in optimizer.param_groups:
-                    g['lr'] = newLearningRate      
+                    g['lr'] = learning_rate   
 
         model.eval()
         with torch.no_grad():
@@ -214,14 +212,17 @@ def train(train_loader, model, criterion, optimizer, device, PATH, numEpochs):
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
 
-            print('NumIterations: {} Epoch Accuracy of the model on the test images: {} %'.format( numIterations, 100 * correct / total))
+            updateString = 'NumIterations: {} Epoch Accuracy of the model on the test images: {} % \n'.format( numIterations, 100 * correct / total) 
+            print(updateString)
+            f.write(updateString)
 
         torch.save({
             'epoch': currEpoch,
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
-            'loss': loss,
+            'loss': loss            
             }, PATH)
+        torch.save(model.module.state_dict(), STATE_PATH)
         
         currEpoch += 1
 
@@ -231,17 +232,28 @@ def getParams(model):
     return numParams
 
 numClasses = 10 
-learning_rate=0.1 #Should be 0.1
+learning_rate = 0.1
+#learning_rate=0.001 #Should be 0.1, use this for warmup for n=18
+useWarmup = False
+loadModel = False
 bs = 128
 numEpochs = 150
 
 cropSize = 32
 numChannels=3
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-PATH = 'resnet_n=5.ckpt'
-n = 5
+n = 3
+#took 3 tries with n=9
+#Took 3 tries with n=9
+#Took like 6 with n=7
+#n=5 worked once out of like 10 times 
+#n=3 never worked
+FILE = 'resnet_n={}.txt'.format(n)
+PATH = 'resnet_n={}.ckpt'.format(n)
+STATE_PATH = 'n={}_state_dict.ckpt'.format(n)
 
 model = ResNet(BasicBlock, numChannels, n, n, n, numClasses).to(device)
+
 numParams = getParams(model)
 print(numParams)
 print(model)
@@ -255,12 +267,12 @@ if torch.cuda.device_count() > 1:
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=0.0001)
 
+if loadModel == True:
+    model.load_state_dict(torch.load(PATH))
 # x = torch.ones(1,3,32,32)
 # z = model(x)
 # print(z.size())
 
-# summary(model.cuda(), (3, 32, 32))
-# print(model)
 #exit()
 
 transform_train = transforms.Compose([
@@ -294,4 +306,4 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=bs, 
                                           shuffle=False)
 
-train(train_loader, model, criterion, optimizer, device, PATH, numEpochs)
+train(train_loader, model, criterion, optimizer, device, PATH, numEpochs, FILE, useWarmup, learning_rate, STATE_PATH)
