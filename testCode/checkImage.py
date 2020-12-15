@@ -49,8 +49,8 @@ class BasicBlock(nn.Module):
         output = self.relu1(output)        
         output = self.conv2(output)
         output = self.batchnorm2(output)
-
-        if self.projection:
+                
+        if self.projection:            
             res = self.projection(x)
 
         output += res
@@ -137,19 +137,6 @@ class ResNet(nn.Module):
 
         return output
 
-def image_loader(image_path):
-    imsize = 32
-    loader = transforms.Compose([
-        transforms.Scale(imsize), 
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-        ])
-
-    testimage  = image.open(image_path)
-    testimage  = loader(testimage).float()
-    testimage = Variable(testimage, requires_grad=True)
-    return testimage
-
 labels = {
     0:"airplane",
     1:"automobile",
@@ -174,7 +161,8 @@ print(PATH)
 
 device = 'cpu'
 model = ResNet(BasicBlock, numChannels, n, n, n, numClasses)
-
+# print(model)
+# summary(model.cuda(), (3, 32, 32))
 #model = WrappedModel(model)
 state_dict = torch.load(PATH, map_location=device)
 model.load_state_dict(state_dict, strict=False)
